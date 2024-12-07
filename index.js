@@ -39,7 +39,31 @@ async function unsuspendServer(id) {
     }
 }
 
-// Function to get all instances
+async function sendPublicAlert(serverId) {
+    const message = {
+        embeds: [{
+          title: "Suspicious activity detected by Sedar.",
+          color: 0x5046e4,
+          fields: [{
+            name: "Container",
+            value: serverId || "Unknown",
+            inline: false
+          }],
+          timestamp: new Date().toISOString(),
+          footer: {
+            text: 'Powered by Sedar 1'
+          }
+        }]
+      };      
+  
+    try {
+      await axios.post(configFile.discord.webhook, message);
+      console.log(`Sent public alert for container ${serverId}`);
+    } catch (error) {
+      console.error(`Error sending public alert for container ${serverId}:`, error);
+    }
+  }
+  // Function to get all instances
 async function getInstances() {
     try {
         const baseUrl = configFile.hydra.url;
@@ -56,7 +80,10 @@ async function getInstances() {
         // Check if the response is valid
         if (response.status === 200) {
             if (response.data) {
-                return response.data; // Return the data if it's valid
+                // Filter out suspended instances
+                const activeInstances = response.data.filter(instance => !instance.suspended);
+
+                return activeInstances; // Return only active instances
             } else {
                 console.error('No data received in response');
                 return []; // Return an empty array if no data is returned
@@ -81,8 +108,6 @@ async function getInstanceFiles(id, path) {
             return []; // Return empty array if the URL is missing
         }
 
-        // Sanitize the path to remove trailing period (if present)
-
         const url = `${baseUrl}/fs/${id}/files?path=${path}`;
         const response = await axios.get(url, {
             auth: {
@@ -103,26 +128,27 @@ async function getInstanceFiles(id, path) {
                         await getInstanceFiles(id, file.name); // Recurse into the subdirectory
                     }
 
+                    // If the file has the purpose 'script', suspend the server and send alert
+                    if (file.purpose === 'script') {
+                        await suspendServer(id); // Suspend the server
+                        await sendPublicAlert(id); // Send the public alert
+                    }
+
                     // If the file is editable, skip it
                     if (file.isEditable) {
                         continue;
                     }
-
-                    const fileName = file.purpose.trim();  // Trim any leading/trailing spaces
-                    if (fileName === 'script') {
-                        console.log(`File ${fileName} has extension .sh Suspending the server...`);
-                        await suspendServer(id); // Call suspendServer function
-                    }          
                 }
             } else {
                 console.error('The "files" field is missing or not an array.');
             }
         } else {
-            console.error(`Failed to retrieve files for instance with ID: ${id} at path: ${sanitizedPath}. Status: ${response.status}`);
+            console.error(`Failed to retrieve files for instance with ID: ${id} at path: ${path}. Status: ${response.status}`);
         }
     } catch (error) {
     }
 }
+
 
 // Function to get the content of a specific file
 async function getInstanceFileContent(id, path, filename) {
