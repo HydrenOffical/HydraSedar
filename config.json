@@ -1,10 +1,10 @@
 {
     "hydra": {
-      "url": "http://138.68.79.95:10843", 
-      "key": "hpk_2def27e0-0de5-4988-b9b8-96ec331a0984"
+      "url": "http://localhost:3001", 
+      "key": "hpk_xx-xx-xx-xx-xxxxxxx"
     },
     "node": {
-      "url": "http://138.68.79.95:28478",  
+      "url": "http://localhost:3002",  
       "key": "a910b13804404d442d4bca2fe7ef9e21edf81c8604a85c63d6ebaf0431075e57"  
     }
   }
