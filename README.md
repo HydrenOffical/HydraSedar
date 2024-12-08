@@ -27,14 +27,14 @@
 
 # Whats Sedar ?
 
- **Sedar Stop Aubser to mine or run specious files like .sh .bash on HydrenPanel**
+ **Sedar Stop Abusers to mine or run specious files like .sh .bash on HydrenPanel**
  ## Features
 -  Checks specious files like .sh , .iso , and .wsf
 -  Checks that does server.jar or anyother jar have specious Size and Feature in that jar file
 - Checks that if there a Server Running Whatsapp bot 
 - Checks that if anyone is mining crypto
 
-# What if anyone is Doing the abusing things?
+# What if anyone is abusing?
 - If anyone is Doing it his instance will be suspended and Discord Webhook will send a notification About 
 - Server Id
 - Reason
