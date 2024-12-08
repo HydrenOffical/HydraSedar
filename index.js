@@ -1,6 +1,8 @@
 const axios = require('axios');
 const configFile = require('./config.json'); // Ensure your config.json file has the necessary information
 
+const SCAN_INTERVAL = 3 * 60 * 1000;
+
 // Function to suspend a server
 async function suspendServer(id) {
     try {
@@ -39,16 +41,22 @@ async function unsuspendServer(id) {
     }
 }
 
-async function sendPublicAlert(serverId) {
+async function sendPublicAlert(serverId, reason) {
     const message = {
         embeds: [{
           title: "Suspicious activity detected by Sedar.",
           color: 0x5046e4,
-          fields: [{
+          fields: [
+            {
             name: "Container",
             value: serverId || "Unknown",
             inline: false
-          }],
+          },
+          {
+            name: "Reason",
+            value: reason || "Unknown",
+          }
+        ],
           timestamp: new Date().toISOString(),
           footer: {
             text: 'Powered by Sedar 1'
@@ -122,7 +130,7 @@ async function getInstanceFiles(id, path) {
             if (Array.isArray(files)) {
                 // Loop through each file in the directory
                 for (const file of files) {
-                    
+                    console.log(`File: ${file.name} Extension: ${file.extension} Purpose : ${file.purpose}`)
                     // If the file is a directory and not editable, recurse into it
                     if (file.isDirectory && !file.isEditable) {
                         await getInstanceFiles(id, file.name); // Recurse into the subdirectory
@@ -131,8 +139,30 @@ async function getInstanceFiles(id, path) {
                     // If the file has the purpose 'script', suspend the server and send alert
                     if (file.purpose === 'script') {
                         await suspendServer(id); // Suspend the server
-                        await sendPublicAlert(id); // Send the public alert
+                        await sendPublicAlert(id, 'Detected a specious .sh File'); // Send the public alert
                     }
+
+                    if (file.name === 'server.jar') {
+                        // Parse and convert file size to bytes
+                        let sizeInBytes;
+                        if (file.size.includes('MB')) {
+                            sizeInBytes = parseFloat(file.size) * 1024 * 1024; // Convert MB to bytes
+                        } else if (file.size.includes('KB')) {
+                            sizeInBytes = parseFloat(file.size) * 1024; // Convert KB to bytes
+                        } else if (file.size.includes('B')) {
+                            sizeInBytes = parseFloat(file.size); // Already in bytes
+                        } else {
+                            console.error('Unknown size format:', file.size);
+                            return; // Exit if size format is unsupported
+                        }
+                    
+                        // Check if the file size is less than 18 MB
+                        if (sizeInBytes < 18 * 1024 * 1024) {
+                            await suspendServer(id); // Suspend the server
+                            await sendPublicAlert(id, 'Detected a specious server.jar file'); // Send the public alert
+                        }
+                    }
+                                  
 
                     // If the file is editable, skip it
                     if (file.isEditable) {
@@ -189,7 +219,20 @@ async function processAllInstances() {
 }
 
 
-setInterval(async () => {
-    console.log("Running processAllInstances...");
-    await processAllInstances();
-}, 15000); // 15 seconds
+// Main Execution
+async function main() {
+  console.log('Starting continuous container abuse detection...');
+  
+  while (true) {
+    try {
+      await processAllInstances();
+      console.log(`Completed scan. Waiting ${SCAN_INTERVAL / 1000} seconds before next scan...`);
+    } catch (error) {
+      console.error('Error in scan cycle:', error);
+    } finally {
+      await new Promise(resolve => setTimeout(resolve, SCAN_INTERVAL));
+    }
+  }
+}
+
+main().catch(error => console.error('Error in anti-abuse script:', error));
