@@ -1,0 +1,15 @@
+{
+    "hydra": {
+      "url": "http://localhost:3001", 
+      "key": "hpk_xxxxxxxxxxxxxxx"
+    },
+    "node": {
+      "url": "http://localhost:3001",  
+      "_note": "Change this key to your node key",
+      "key": "a910b13804404d442d4bca2fe7ef9e21edf81c8604a85c63d6ebaf0431075e57"  
+    },
+    "discord": {
+      "webhook": "https://discord.com/api/webhooks/0000000000000000000/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    }
+  }
+  
