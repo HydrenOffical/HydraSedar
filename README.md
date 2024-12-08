@@ -35,7 +35,7 @@
 - Checks that if anyone is mining crypto
 
 # What if anyone is abusing?
-- If anyone is Doing it his instance will be suspended and Discord Webhook will send a notification About 
+- If he/she is abusing, His/Her instance will be suspended and Discord Webhook will send a notification About 
 - Server Id
 - Reason
 
